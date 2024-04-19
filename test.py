@@ -18,25 +18,17 @@ kernel = [
     np.array([[2,0,0],[0,1,0],[0,0,-2]])
 ]
 
-#kernel1 = np.array([[0,1,1,2,2,2,1,1,0],[1,2,4,5,5,5,4,2,1],[1,4,5,3,0,3,5,4,1],[2,5,3,-12,-24,-12,3,5,2],[2,5,0,-24,-40,-24,0,5,2],[2,5,3,-12,-24,-12,3,5,2],[1,4,5,3,0,3,4,4,1],[1,2,4,5,5,5,4,2,1],[0,1,1,2,2,2,1,1,0]])
-#kernel1 = np.array([[1,1,1],[1,-7,1],[1,1,1]])
-#kernel1 = np.array([[1,1,1]])
-
-#kernel1 = np.array([[1,1,1,1,1],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[-1,-1,-1,-1,-1]])
-# cv2.IMREAD_GRAYSCALE
-
 kernel_num = 0
 timer = 0
 
 user32 = ctypes.windll.user32
 screen_width, screen_height = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
-output_image = np.zeros((screen_height,screen_width,3),dtype='uint8')
- 
-cv2.imshow('132',output_image)
+
+mask = np.array([[[225,225,225] for i in range(screen_width-300)] for j in range(screen_height)], dtype=float)
+output_image = np.zeros((screen_height,screen_width,3))
 
 
-'''
 while(True):
 
  
@@ -61,13 +53,19 @@ while(True):
         break
 
     if frame.shape[0] >= kernel[kernel_num].shape[0] and frame.shape[1] >= kernel[kernel_num].shape[1]:
-        convolved_image1 = cv2.filter2D(frame, -1, kernel[kernel_num])
+        convolved_image = cv2.filter2D(frame, -1, kernel[kernel_num])
     else:
         print("Kernel's size is too small")
     
-    output_image[0:int(newY), 0:int(newX)] = convolved_image1
-
-    cv2.imshow('live2', convolved_image1)
+    output_image[0:int(screen_height), 0:int(screen_width-300)] = mask
+    output_image[0:int(newY), 0:int(newX)] = convolved_image
+    '''
+    for i,a in zip(convolved_image, output_image[0:int(newY), 0:int(newX)]) :
+        for j,b in zip(i,a):
+            for k,c in zip(j,b):
+                print(k-c)
+    '''
+    cv2.imshow('live2', convolved_image)
     #cv2.imshow('live', gray)
     cv2.imshow('live',output_image)
 
@@ -81,4 +79,3 @@ while(True):
 
 cap.release()
 cv2.destroyAllWindows()
-'''
