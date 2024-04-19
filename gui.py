@@ -3,11 +3,13 @@ from PIL import Image,ImageTk
 import PySimpleGUI as sg
 import __conv
 import numpy as np
+import cv2
 
 kernel = [np.array([[1]]),
           np.array([[1,1,1],[1,-7,1],[1,1,1]]),
           np.array([[0,1,1,2,2,2,1,1,0],[1,2,4,5,5,5,4,2,1],[1,4,5,3,0,3,5,4,1],[2,5,3,-12,-24,-12,3,5,2],[2,5,0,-24,-40,-24,0,5,2],[2,5,3,-12,-24,-12,3,5,2],[1,4,5,3,0,3,4,4,1],[1,2,4,5,5,5,4,2,1],[0,1,1,2,2,2,1,1,0]]),
           np.array([[1,1,1,1,1],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[-1,-1,-1,-1,-1]]),
+          np.array([[1]]),
           np.array([[1]]),
           ]
 kernel_now = 0
@@ -39,9 +41,11 @@ layout = [
           sg.Radio('Yes', 'gray', enable_events=True, key='gray_true', font=32),
           sg.Radio('No', 'gray', enable_events=True, key='gray_false', default=True, font=32),
           sg.Push(),],
-        [sg.FileBrowse("Choose Image",target='-GETFILE-',key='-GETFILE-',
+        [sg.FileBrowse("Choose Image",target='-GETFILE-', key='-GETFILE-',
          enable_events=True,size=(15,2), font=32),
-         sg.Text('',k='-TEXT1-'),],
+         sg.Text('',k='-TEXT1-'),
+         sg.Push(),
+         sg.Button('Download', font=32, enable_events=True, key='-DOWNLOAD-', size=(15,2))],
     ]
 
 #window = sg.Window('Convolution', layout)
@@ -50,7 +54,7 @@ window.Maximize()
 #################################################
 
 ############## Customize Kernel #################
-def str_to_int(tar):
+def str_to_float(tar):
     if tar == '':
         return 1
     elif '/' in tar:
@@ -63,12 +67,15 @@ def str_to_int(tar):
             return 1
     else:
         try:
-            return int(tar)
+            return float(tar)
         except:
             return 1
 
 def design_kernel_5X5():
     l1 = sg.Text('自訂kernel!!!', key='-OUT-', font=('Arial Bold', 16), expand_x=True, justification='center', size=(10, 2))
+    l2 = sg.Text('OR', font=16, expand_x=False, justification='center', size=(7, 1))
+    l3 = sg.Text('全部填充', expand_x=False, justification='center', size=(11, 1))
+    l4 = sg.Text('', expand_x=False, justification='center')
     t1 = sg.Input('', key='-INPUT1-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
     t2 = sg.Input('', key='-INPUT2-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
     t3 = sg.Input('', key='-INPUT3-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
@@ -94,21 +101,22 @@ def design_kernel_5X5():
     t23 = sg.Input('', key='-INPUT23-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
     t24 = sg.Input('', key='-INPUT24-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
     t25 = sg.Input('', key='-INPUT25-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
+    t26 = sg.Input('', key='-INPUT26-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
     b1 = sg.Button('Ok',  enable_events=True, key='-OK-', font=('Arial', 16), size=(5,1))
     b2 = sg.Button('Exit', font=('Arial', 16), size=(5,1))
 
     layout = [[l1], 
-    [t1,t2,t3,t4,t5],
-    [t6,t7,t8,t9,t10],
-    [t11,t12,t13,t14,t15],
-    [t16,t17,t18,t19,t20],
-    [t21,t22,t23,t24,t25], 
+    [sg.Push(),t1,t2,t3,t4,t5,sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push()],
+    [sg.Push(),t6,t7,t8,t9,t10,sg.Push(),sg.Push(),l3,sg.Push(),sg.Push()],
+    [sg.Push(),t11,t12,t13,t14,t15,l2,t26,sg.Push(),sg.Push(),sg.Push(),],
+    [sg.Push(),t16,t17,t18,t19,t20,sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push(),],
+    [sg.Push(),t21,t22,t23,t24,t25,sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push()], 
     [sg.Text(' ')],
     [sg.Push(), b1, sg.Push(),b2,sg.Push()]]
 
     custo_kernel = [[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1]]
 
-    window = sg.Window('Design a kernel', layout, size=(300, 350))
+    window = sg.Window('Design a kernel', layout, size=(500, 350))
     while True:
         event, values = window.read()
 
@@ -117,11 +125,18 @@ def design_kernel_5X5():
             break
 
         if event == '-OK-':
-            for i in range(5):
-                tmp=i*5
-                for j in range(5):
-                    input_key = '-INPUT'+str(tmp+j+1)+'-'
-                    custo_kernel[i][j] = str_to_int(values[input_key])
+            if values['-INPUT26-'] != '':
+                for i in range(5):
+                    tmp=i*5
+                    for j in range(5):
+                        custo_kernel[i][j] = str_to_float(values['-INPUT26-'])
+
+            else:   
+                for i in range(5):
+                    tmp=i*5
+                    for j in range(5):
+                        input_key = '-INPUT'+str(tmp+j+1)+'-'
+                        custo_kernel[i][j] = str_to_float(values[input_key])
 
             if custo_kernel==[[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1]]:
                 custo_kernel = [[1]]
@@ -132,6 +147,8 @@ def design_kernel_5X5():
 
 def design_kernel_3X3():
     l1 = sg.Text('自訂kernel!!!', key='-OUT-', font=('Arial Bold', 16), expand_x=True, justification='center', size=(10, 2))
+    l2 = sg.Text('OR', font=16, expand_x=False, justification='center', size=(7, 1))
+    l3 = sg.Text('全部填充', expand_x=False, justification='right', size=(11, 1))
     t1 = sg.Input('', key='-INPUT1-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
     t2 = sg.Input('', key='-INPUT2-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
     t3 = sg.Input('', key='-INPUT3-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
@@ -141,19 +158,20 @@ def design_kernel_3X3():
     t7 = sg.Input('', key='-INPUT7-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
     t8 = sg.Input('', key='-INPUT8-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
     t9 = sg.Input('', key='-INPUT9-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
+    t10 = sg.Input('', key='-INPUT10-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
     b1 = sg.Button('Ok',  enable_events=True, key='-OK-', font=('Arial', 16), size=(5,1))
     b2 = sg.Button('Exit', font=('Arial', 16), size=(5,1))
 
     layout = [[l1], 
-    [t1,t2,t3],
-    [t4,t5,t6],
-    [t7,t8,t9],
+    [sg.Push(),t1,t2,t3,sg.Push(),l3,sg.Push(),],
+    [sg.Push(),t4,t5,t6,l2,t10,sg.Push(),],
+    [sg.Push(),t7,t8,t9,sg.Push(),sg.Push(),sg.Push(),sg.Push(),sg.Push(),],
     [sg.Text(' ')],
     [sg.Push(), b1, sg.Push(),b2,sg.Push()]]
 
     custo_kernel = [[1,1,1],[1,1,1],[1,1,1]]
 
-    window = sg.Window('Design a kernel', layout, size=(200, 300))
+    window = sg.Window('Design a kernel', layout, size=(400, 300))
     while True:
         event, values = window.read()
 
@@ -162,18 +180,24 @@ def design_kernel_3X3():
             break
 
         if event == '-OK-':
-            for i in range(3):
-                tmp=i*3
-                for j in range(3):
-                    input_key = '-INPUT'+str(tmp+j+1)+'-'
-                    custo_kernel[i][j] = str_to_int(values[input_key])
+            if values['-INPUT10-'] != '':
+                for i in range(3):
+                    tmp=i*3
+                    for j in range(3):
+                        custo_kernel[i][j] = str_to_float(values['-INPUT10-'])
+            else:
+                for i in range(3):
+                    tmp=i*3
+                    for j in range(3):
+                        input_key = '-INPUT'+str(tmp+j+1)+'-'
+                        custo_kernel[i][j] = str_to_float(values[input_key])
 
             if custo_kernel==[[1,1,1],[1,1,1],[1,1,1]]:
                 custo_kernel = [[1]]
             break
         
     window.close()
-    kernel[4] = np.array(custo_kernel)
+    kernel[5] = np.array(custo_kernel)
 #################################################
 
 ################ Resize Image ###################
@@ -190,9 +214,16 @@ def resize(image_file, new_size):
 size = (400, 600)
 #################################################
 
+################ Download Images ################
+def download(image_file, kernel_idx, is_gray):
+    result_path = __conv.conv(kernel[kernel_idx], image_file, is_gray)
+    result = cv2.imread(result_path)
+    cv2.imshow('Download', result)
+#################################################
+
 ################ Update Image ###################
-def update_img(idx, is_gray):
-    result_path = __conv.conv(kernel[idx], targe_path, is_gray)
+def update_img(kernel_idx, is_gray):
+    result_path = __conv.conv(kernel[kernel_idx], targe_path, is_gray)
     result = Image.open(result_path)
     convolved_img = ImageTk.PhotoImage(result)
     window['-IMAGE2-'].update(data=convolved_img)
@@ -207,10 +238,10 @@ while True:
 
     if event == '-GETFILE-':
 
-        targe_path = values['-GETFILE-']
-        window['-TEXT1-'].update(targe_path)
+        targe_path_ori = values['-GETFILE-']
+        window['-TEXT1-'].update(targe_path_ori)
 
-        targe_path = resize(targe_path, size)
+        targe_path = resize(targe_path_ori, size)
         image = Image.open(targe_path)
         photo_img = ImageTk.PhotoImage(image)
         
@@ -224,6 +255,7 @@ while True:
         values['k2'] = False
         values['k3'] = False
         values['k4'] = False
+        values['k5'] = False
         values['gray_false'] = True
         values['gray_true'] = False
         gray_switch = False
@@ -254,7 +286,7 @@ while True:
     if (values['k5'] == True) and  (kernel_now != 5):
         kernel_now = 5
         design_kernel_3X3()
-        update_img(4, gray_switch)
+        update_img(5, gray_switch)
 
     if (values['gray_true'] == True) and (gray_switch != True):
         gray_switch = True
@@ -263,6 +295,10 @@ while True:
     if (values['gray_false'] == True) and (gray_switch != False):
         gray_switch = False
         update_img(kernel_now, gray_switch)
+
+    if event == '-DOWNLOAD-':
+        download(targe_path_ori, kernel_now, gray_switch)
+
 
 window.close()
 #################################################
