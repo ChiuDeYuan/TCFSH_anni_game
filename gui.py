@@ -297,6 +297,7 @@ while True:
         update_img(kernel_now, gray_switch)
 
     if event == '-DOWNLOAD-':
+        print(targe_path_ori)
         download(targe_path_ori, kernel_now, gray_switch)
 
 
