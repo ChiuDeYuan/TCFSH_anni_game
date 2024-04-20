@@ -4,8 +4,8 @@ import ctypes
 
 cap = cv2.VideoCapture(0) # this is the magic!
 
-cv2.namedWindow("Camera", cv2.WND_PROP_FULLSCREEN)
-cv2.setWindowProperty("Camera", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+#cv2.namedWindow("Camera", cv2.WND_PROP_FULLSCREEN)
+#cv2.setWindowProperty("Camera", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
 
 if not cap.isOpened():
     print("Cannot open camera")
@@ -33,10 +33,6 @@ screen_width, screen_height = user32.GetSystemMetrics(0), user32.GetSystemMetric
 
 output_image = np.zeros((screen_height,screen_width,3),dtype='uint8')
  
-cv2.imshow('132',output_image)
-
-
-'''
 while(True):
 
  
@@ -81,4 +77,3 @@ while(True):
 
 cap.release()
 cv2.destroyAllWindows()
-'''
