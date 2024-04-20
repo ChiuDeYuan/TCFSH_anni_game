@@ -1,6 +1,10 @@
 import numpy as np
 import cv2
 import ctypes
+from PIL import ImageFont, ImageDraw, Image
+
+fontpath = 'fonts/NotoSansTC-Regular.ttf'
+font = ImageFont.truetype(fontpath, 50)
 
 cap = cv2.VideoCapture(0) # this is the magic!
 
@@ -18,9 +22,6 @@ kernel = [
     np.array([[2,0,0],[0,1,0],[0,0,-2]])
 ]
 
-#kernel1 = np.array([[0,1,1,2,2,2,1,1,0],[1,2,4,5,5,5,4,2,1],[1,4,5,3,0,3,5,4,1],[2,5,3,-12,-24,-12,3,5,2],[2,5,0,-24,-40,-24,0,5,2],[2,5,3,-12,-24,-12,3,5,2],[1,4,5,3,0,3,4,4,1],[1,2,4,5,5,5,4,2,1],[0,1,1,2,2,2,1,1,0]])
-#kernel1 = np.array([[1,1,1],[1,-7,1],[1,1,1]])
-#kernel1 = np.array([[1,1,1]])
 
 #kernel1 = np.array([[1,1,1,1,1],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[-1,-1,-1,-1,-1]])
 # cv2.IMREAD_GRAYSCALE
@@ -62,6 +63,11 @@ while(True):
         print("Kernel's size is too small")
     
     output_image[0:int(newY), 0:int(newX)] = convolved_image1
+
+    imgPil = Image.fromarray(output_image)
+    draw = ImageDraw.Draw(imgPil)
+    draw.text((newX, 0), '現在的卷積核', fill=(255, 255, 255), font=font)
+    output_image = np.array(imgPil)  
 
     cv2.imshow('live2', convolved_image1)
     #cv2.imshow('live', gray)
