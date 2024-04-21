@@ -3,8 +3,9 @@ import cv2
 import ctypes
 from PIL import ImageFont, ImageDraw, Image
 
+font_size=[40,40,30,20,15]
 fontpath = 'fonts/NotoSansTC-Regular.ttf'
-font = ImageFont.truetype(fontpath, 50)
+
 
 cap = cv2.VideoCapture(0) # this is the magic!
 
@@ -64,9 +65,16 @@ while(True):
     
     output_image[0:int(newY), 0:int(newX)] = convolved_image1
 
+    font = ImageFont.truetype(fontpath, 40)
     imgPil = Image.fromarray(output_image)
     draw = ImageDraw.Draw(imgPil)
-    draw.text((newX, 0), '現在的卷積核', fill=(255, 255, 255), font=font)
+    draw.text((newX, 0), '現在的卷積核:', fill=(255, 255, 255), font=font)
+    font = ImageFont.truetype(fontpath, font_size[int(len(kernel[kernel_num]))//2])
+    text_width = float(screen_width-newX)/len(kernel[kernel_num])
+    for i in range(len(kernel[kernel_num])):
+        for j in range(len(kernel[kernel_num][i])):
+            draw.text((newX+text_width*j, 100+text_width*i), str(kernel[kernel_num][i][j]), fill=(255, 255, 255), font=font)
+    
     output_image = np.array(imgPil)  
 
     cv2.imshow('live2', convolved_image1)
@@ -80,6 +88,7 @@ while(True):
     if timer>150:
         timer = 0
         kernel_num = (kernel_num+1)%len(kernel)
+        output_image = np.zeros((screen_height,screen_width,3),dtype='uint8')
 
 cap.release()
 cv2.destroyAllWindows()
