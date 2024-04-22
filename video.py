@@ -36,6 +36,10 @@ timer = 0
 user32 = ctypes.windll.user32
 screen_width, screen_height = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
+text_margin = 20
+frame_margin_width = 10
+frame_margin_height = 100
+
 output_image = np.zeros((screen_height,screen_width,3),dtype='uint8')
  
 while(True):
@@ -71,14 +75,19 @@ while(True):
     font = ImageFont.truetype(fontpath, 40)
     imgPil = Image.fromarray(output_image)
     draw = ImageDraw.Draw(imgPil)
-    draw.text((newX, 0), '現在的卷積核:', fill=(255, 255, 255), font=font)
+    draw.text((newX+text_margin, 0), '現在的卷積核:', fill=(255, 255, 255), font=font)
     font = ImageFont.truetype(fontpath, font_size[int(len(kernel[kernel_num]))//2])
-    text_width = float(screen_width-newX)/len(kernel[kernel_num])
+    text_width = float(screen_width-newX-text_margin)/len(kernel[kernel_num])
     for i in range(len(kernel[kernel_num])):
         for j in range(len(kernel[kernel_num][i])):
-            draw.text((newX+text_width*j, 100+text_width*i), str(kernel[kernel_num][i][j]), fill=(255, 255, 255), font=font)
+            draw.text((newX+text_margin+text_width*j, 100+text_width*i), str(kernel[kernel_num][i][j]), fill=(255, 255, 255), font=font)
     
     output_image = np.array(imgPil)  
+
+    for i in range(len(kernel[kernel_num])+1):
+        cv2.line(output_image,(int(newX+frame_margin_width+round(text_width*i)),frame_margin_height),(int(newX+frame_margin_width+text_width*i),int(frame_margin_height+round(text_width)*len(kernel[kernel_num]))),(255,255,255),2)
+        cv2.line(output_image,(int(newX+frame_margin_width),int(frame_margin_height+round(text_width)*i)),(int(newX+frame_margin_width+round(text_width*len(kernel[kernel_num]))),int(frame_margin_height+round(text_width)*i)),(255,255,255),2)
+    # cv2.line(output_image,(100,100),(100,200),(255,255,255),2) straight
 
     cv2.imshow('live2', convolved_image1)
     #cv2.imshow('live', gray)
