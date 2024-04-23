@@ -8,44 +8,50 @@ import cv2
 kernel = [np.array([[1]]),
           np.array([[1,1,1],[1,-7,1],[1,1,1]]),
           np.array([[0,1,1,2,2,2,1,1,0],[1,2,4,5,5,5,4,2,1],[1,4,5,3,0,3,5,4,1],[2,5,3,-12,-24,-12,3,5,2],[2,5,0,-24,-40,-24,0,5,2],[2,5,3,-12,-24,-12,3,5,2],[1,4,5,3,0,3,4,4,1],[1,2,4,5,5,5,4,2,1],[0,1,1,2,2,2,1,1,0]]),
-          np.array([[1,1,1,1,1],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[-1,-1,-1,-1,-1]]),
+          np.array([[1,1,1],[0,0,0],[-1,-1,-1]]),
           np.array([[1]]),
           np.array([[1]]),
+          np.array([[-0.5,-1,-0.5],[-1,7,-1],[-0.5,-1,-0.5]]),
+          np.array([[-2,0,0],[0,1,0],[0,0,2]]),
+          np.array([[1/81 for _ in range(9)] for __ in range(9)]),
           ]
 kernel_now = 0
 gray_switch = False
 
 ############## GUI ################
-sg.theme('LightGreen')
+sg.theme('LightBlue6')
 layout = [
         [sg.Push(),
-         sg.Text('卷積處理圖片', size=(20, 2), justification='c', font=64),
+         sg.Text('卷積處理圖片', size=(20, 1), justification='c', font=('Arial Bold', 24)),
          sg.Push()],
         [sg.Push(),sg.Push(),sg.Push(),
          sg.Image(key="-IMAGE-",size=(400,600),),
-         sg.Push(),
+         sg.Graph(canvas_size=(200, 200), graph_bottom_left=(0, 0), graph_top_right=(400, 400), background_color='red', key='graph'),
          sg.Image(key="-IMAGE2-",size=(400,600),),
          sg.Push(),sg.Push(),sg.Push(),],
-        [sg.Text('', size=(10,2))],
         [sg.Push(),
-          sg.Text('卷積核 :', font=32),
-          sg.Radio('原圖', 'kernel', enable_events=True, key='ori', default=True, font=32),
-          sg.Radio('1', 'kernel', enable_events=True, key='k1', font=32),
-          sg.Radio('2', 'kernel', enable_events=True, key='k2', font=32),
-          sg.Radio('3', 'kernel', enable_events=True, key='k3', font=32),
-          sg.Radio('自定義5X5', 'kernel', enable_events=True, key='k4', font=32),
-          sg.Radio('自定義3X3', 'kernel', enable_events=True, key='k5', font=32),
+         sg.Text('灰階 :', font=('sens', 16)),
+          sg.Radio('Yes', 'gray', enable_events=True, key='gray_true', font=('sens', 16)),
+          sg.Radio('No', 'gray', enable_events=True, key='gray_false', default=True, font=('sens', 16)),
           sg.Push(),],
         [sg.Push(),
-         sg.Text('灰階 :', font=32),
-          sg.Radio('Yes', 'gray', enable_events=True, key='gray_true', font=32),
-          sg.Radio('No', 'gray', enable_events=True, key='gray_false', default=True, font=32),
+          sg.Text('卷積核 :', font=('sens', 16)),
+          sg.Radio('原圖', 'kernel', enable_events=True, key='ori', default=True, font=('sens', 16)),
+          sg.Radio('邊緣1', 'kernel', enable_events=True, key='k1', font=('sens', 16)),
+          sg.Radio('邊緣2', 'kernel', enable_events=True, key='k3', font=('sens', 16)),
+          sg.Radio('拉普拉斯算子', 'kernel', enable_events=True, key='k2', font=('sens', 16)),
+          sg.Radio('銳利化1', 'kernel', enable_events=True, key='k6', font=('sens', 16)),
+          sg.Radio('銳利化2', 'kernel', enable_events=True, key='k7', font=('sens', 16)),
+          sg.Radio('模糊', 'kernel', enable_events=True, key='k8', font=('sens', 16)),
+          sg.Radio('自定義3X3', 'kernel', enable_events=True, key='k5', font=('sens', 16)),
+          sg.Radio('自定義5X5', 'kernel', enable_events=True, key='k4', font=('sens', 16)),
           sg.Push(),],
+        [sg.Text('',size=(1,1)),],
         [sg.FileBrowse("Choose Image",target='-GETFILE-', key='-GETFILE-',
-         enable_events=True,size=(15,2), font=32),
+         enable_events=True,size=(20,2), font=('sens', 16)),
          sg.Text('',k='-TEXT1-'),
          sg.Push(),
-         sg.Button('Download', font=32, enable_events=True, key='-DOWNLOAD-', size=(15,2))],
+         sg.Button('Download', font=('sens', 16), enable_events=True, key='-DOWNLOAD-', size=(15,2))],
     ]
 
 #window = sg.Window('Convolution', layout)
@@ -288,6 +294,18 @@ while True:
         design_kernel_3X3()
         update_img(5, gray_switch)
 
+    if (values['k6'] == True) and (kernel_now != 6):
+        kernel_now = 6
+        update_img(6, gray_switch)    
+
+    if (values['k7'] == True) and (kernel_now != 7):
+        kernel_now = 7
+        update_img(7, gray_switch)
+
+    if (values['k8'] == True) and (kernel_now != 8):
+        kernel_now = 8
+        update_img(8, gray_switch)
+
     if (values['gray_true'] == True) and (gray_switch != True):
         gray_switch = True
         update_img(kernel_now, gray_switch)
@@ -299,7 +317,6 @@ while True:
     if event == '-DOWNLOAD-':
         print(targe_path_ori)
         download(targe_path_ori, kernel_now, gray_switch)
-
 
 window.close()
 #################################################
