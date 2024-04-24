@@ -25,9 +25,10 @@ layout = [
          sg.Text('卷積處理圖片', size=(20, 1), justification='c', font=('Arial Bold', 24)),
          sg.Push()],
         [sg.Push(),sg.Push(),sg.Push(),
-         sg.Image(key="-IMAGE-",size=(400,600),),
-         sg.Graph(canvas_size=(200, 200), graph_bottom_left=(0, 0), graph_top_right=(400, 400), background_color='red', key='graph'),
-         sg.Image(key="-IMAGE2-",size=(400,600),),
+         sg.Image(key="-IMAGE-",size=(450,600),),
+         sg.Image(key="-ARROW-",),
+         sg.Graph(canvas_size=(330, 330), graph_bottom_left=(0, 0), graph_top_right=(330, 330), key='graph'),
+         sg.Image(key="-IMAGE2-",size=(450,600),),
          sg.Push(),sg.Push(),sg.Push(),],
         [sg.Push(),
          sg.Text('灰階 :', font=('sens', 16)),
@@ -56,11 +57,37 @@ layout = [
 
 #window = sg.Window('Convolution', layout)
 window = sg.Window('Convolution', layout).Finalize()
+
+window['graph'].draw_image(filename='./assets/arrow_rs.png', location=(-13, 250),)
+window['graph'].draw_line(point_from=(30,30), point_to=(30,280))
+window['graph'].draw_line(point_from=(280,30), point_to=(280,280))
+window['graph'].draw_line(point_from=(30,280), point_to=(280,280))
+window['graph'].draw_line(point_from=(30,30), point_to=(280,30))
+window['graph'].draw_rectangle((30, 30), (280, 280), fill_color='white', line_color='#67b0d1')
+
 window.Maximize()
 #################################################
 
+################## Draw Kernel ##################
+
+def draw_kernel(kernel):
+    window['graph'].draw_rectangle((30, 30), (280, 280), fill_color='white', line_color='#67b0d1')
+    kernel_size = kernel.shape[1]
+    padding = 250/kernel_size
+    for i in range(1,kernel_size+1):
+        window['graph'].draw_line(point_from=(30+i*padding,30), point_to=(30+i*padding,280), color='#67b0d1')
+        window['graph'].draw_line(point_from=(30,30+i*padding), point_to=(280,30+i*padding), color='#67b0d1')
+
+    for i,text_i in zip(range(kernel_size),kernel):
+        for j,text_j in zip(range(kernel_size),text_i):
+            window['graph'].draw_text(round(text_j, 3), font=('sens', 11+int(padding/10)-len(str(round(text_j, 3)))), location=(30+(j+1/2)*padding,280-(i+1/2)*padding))
+
+#################################################
+
 ############## Customize Kernel #################
+
 def str_to_float(tar):
+    print(tar)
     if tar == '':
         return 1
     elif '/' in tar:
@@ -73,13 +100,16 @@ def str_to_float(tar):
             return 1
     else:
         try:
-            return float(tar)
+            if '.' in tar:
+                return float(tar)
+            else:
+                return int(tar)
         except:
             return 1
 
 def design_kernel_5X5():
     l1 = sg.Text('自訂kernel!!!', key='-OUT-', font=('Arial Bold', 16), expand_x=True, justification='center', size=(10, 2))
-    l2 = sg.Text('OR', font=16, expand_x=False, justification='center', size=(7, 1))
+    l2 = sg.Text('OR', font=16, expand_x=False, justification='center', size=(6, 1))
     l3 = sg.Text('全部填充', expand_x=False, justification='center', size=(11, 1))
     l4 = sg.Text('', expand_x=False, justification='center')
     t1 = sg.Input('', key='-INPUT1-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
@@ -153,7 +183,7 @@ def design_kernel_5X5():
 
 def design_kernel_3X3():
     l1 = sg.Text('自訂kernel!!!', key='-OUT-', font=('Arial Bold', 16), expand_x=True, justification='center', size=(10, 2))
-    l2 = sg.Text('OR', font=16, expand_x=False, justification='center', size=(7, 1))
+    l2 = sg.Text('OR', font=16, expand_x=False, justification='center', size=(6, 1))
     l3 = sg.Text('全部填充', expand_x=False, justification='right', size=(11, 1))
     t1 = sg.Input('', key='-INPUT1-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
     t2 = sg.Input('', key='-INPUT2-', font=('Arial Bold', 20), expand_x=True, justification='left', size=(1, 2))
@@ -204,9 +234,11 @@ def design_kernel_3X3():
         
     window.close()
     kernel[5] = np.array(custo_kernel)
+
 #################################################
 
 ################ Resize Image ###################
+
 def resize(image_file, new_size):
     im = Image.open(image_file)
     im.thumbnail(new_size, Image.Resampling.BILINEAR)
@@ -217,26 +249,32 @@ def resize(image_file, new_size):
         im.save('./temp_img/tmp.png')
         return "./temp_img/tmp.png"
 
-size = (400, 600)
+size = (450, 600)
+
 #################################################
 
 ################ Download Images ################
+
 def download(image_file, kernel_idx, is_gray):
     result_path = __conv.conv(kernel[kernel_idx], image_file, is_gray)
     result = cv2.imread(result_path)
     cv2.imshow('Download', result)
+
 #################################################
 
 ################ Update Image ###################
+
 def update_img(kernel_idx, is_gray):
     result_path = __conv.conv(kernel[kernel_idx], targe_path, is_gray)
     result = Image.open(result_path)
     convolved_img = ImageTk.PhotoImage(result)
     window['-IMAGE2-'].update(data=convolved_img)
     window['-IMAGE2-'].set_size(window['-IMAGE2-'].get_size())
+
 #################################################
 
 #################### Work #######################
+
 while True:
     event, values = window.read()
     if event == 'Exit' or event == sg.WIN_CLOSED:
@@ -262,61 +300,77 @@ while True:
         values['k3'] = False
         values['k4'] = False
         values['k5'] = False
+        values['k6'] = False
+        values['k7'] = False
+        values['k8'] = False
         values['gray_false'] = True
         values['gray_true'] = False
         gray_switch = False
         kernel_now = 0
         update_img(0, False)
+        draw_kernel(kernel[0])
     
     if (values['ori'] == True) and  (kernel_now != 0) :
         kernel_now = 0
         update_img(0, gray_switch)
+        draw_kernel(kernel[0])
 
     if (values['k1'] == True) and (kernel_now != 1):
         kernel_now = 1
         update_img(1, gray_switch)
+        draw_kernel(kernel[1])
 
     if (values['k2'] == True) and (kernel_now != 2):
         kernel_now = 2
         update_img(2, gray_switch)
+        draw_kernel(kernel[2])
 
     if (values['k3'] == True) and (kernel_now != 3):
         kernel_now = 3
         update_img(3, gray_switch)
+        draw_kernel(kernel[3])
     
     if (values['k4'] == True) and  (kernel_now != 4):
         kernel_now = 4
         design_kernel_5X5()
         update_img(4, gray_switch)
+        draw_kernel(kernel[4])
 
     if (values['k5'] == True) and  (kernel_now != 5):
         kernel_now = 5
         design_kernel_3X3()
         update_img(5, gray_switch)
+        draw_kernel(kernel[5])
 
     if (values['k6'] == True) and (kernel_now != 6):
         kernel_now = 6
-        update_img(6, gray_switch)    
+        update_img(6, gray_switch)
+        draw_kernel(kernel[6])    
 
     if (values['k7'] == True) and (kernel_now != 7):
         kernel_now = 7
         update_img(7, gray_switch)
+        draw_kernel(kernel[7])
 
     if (values['k8'] == True) and (kernel_now != 8):
         kernel_now = 8
         update_img(8, gray_switch)
+        draw_kernel(kernel[8])
 
     if (values['gray_true'] == True) and (gray_switch != True):
         gray_switch = True
         update_img(kernel_now, gray_switch)
+        draw_kernel(kernel[kernel_now])
     
     if (values['gray_false'] == True) and (gray_switch != False):
         gray_switch = False
         update_img(kernel_now, gray_switch)
+        draw_kernel(kernel[kernel_now])
 
     if event == '-DOWNLOAD-':
         print(targe_path_ori)
         download(targe_path_ori, kernel_now, gray_switch)
 
 window.close()
+
 #################################################
