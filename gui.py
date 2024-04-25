@@ -4,6 +4,14 @@ import PySimpleGUI as sg
 import __conv
 import numpy as np
 import cv2
+import ctypes
+
+##################################
+
+user32 = ctypes.windll.user32
+screen_width, screen_height = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+
+##################################
 
 kernel = [np.array([[1]]),
           np.array([[-1,-2,-1],[-2,13,-2],[-1,-2,-1]]),
@@ -22,37 +30,37 @@ gray_switch = False
 sg.theme('LightBlue6')
 layout = [
         [sg.Push(),
-         sg.Text('卷積處理圖片', size=(20, 1), justification='c', font=('Arial Bold', 24)),
+         sg.Text('卷積處理圖片', size=(20, 1), justification='c', font=('Arial Bold', 32)),
          sg.Push()],
         [sg.Push(),sg.Push(),sg.Push(),
-         sg.Image(key="-IMAGE-",size=(450,600),),
+         sg.Image(key="-IMAGE-",size=(700,1000),),
          sg.Image(key="-ARROW-",),
          sg.Graph(canvas_size=(330, 330), graph_bottom_left=(0, 0), graph_top_right=(330, 330), key='graph'),
-         sg.Image(key="-IMAGE2-",size=(450,600),),
+         sg.Image(key="-IMAGE2-",size=(700,1000),),
          sg.Push(),sg.Push(),sg.Push(),],
         [sg.Push(),
-         sg.Text('灰階 :', font=('sens', 16)),
-          sg.Radio('Yes', 'gray', enable_events=True, key='gray_true', font=('sens', 16)),
-          sg.Radio('No', 'gray', enable_events=True, key='gray_false', default=True, font=('sens', 16)),
+         sg.Text('灰階 :', font=('sens', 24)),
+          sg.Radio('Yes', 'gray', enable_events=True, key='gray_true', font=('sens', 24)),
+          sg.Radio('No', 'gray', enable_events=True, key='gray_false', default=True, font=('sens', 24)),
           sg.Push(),],
         [sg.Push(),
-          sg.Text('卷積核 :', font=('sens', 16)),
-          sg.Radio('原圖', 'kernel', enable_events=True, key='ori', default=True, font=('sens', 16)),
-          sg.Radio('邊緣1', 'kernel', enable_events=True, key='k1', font=('sens', 16)),
-          sg.Radio('邊緣2', 'kernel', enable_events=True, key='k3', font=('sens', 16)),
-          sg.Radio('拉普拉斯算子', 'kernel', enable_events=True, key='k2', font=('sens', 16)),
-          sg.Radio('銳利化1', 'kernel', enable_events=True, key='k6', font=('sens', 16)),
-          sg.Radio('銳利化2', 'kernel', enable_events=True, key='k7', font=('sens', 16)),
-          sg.Radio('模糊', 'kernel', enable_events=True, key='k8', font=('sens', 16)),
-          sg.Radio('自定義3X3', 'kernel', enable_events=True, key='k5', font=('sens', 16)),
-          sg.Radio('自定義5X5', 'kernel', enable_events=True, key='k4', font=('sens', 16)),
+          sg.Text('卷積核 :', font=('sens', 24)),
+          sg.Radio('原圖', 'kernel', enable_events=True, key='ori', default=True, font=('sens', 24)),
+          sg.Radio('邊緣1', 'kernel', enable_events=True, key='k1', font=('sens', 24)),
+          sg.Radio('邊緣2', 'kernel', enable_events=True, key='k3', font=('sens', 24)),
+          sg.Radio('拉普拉斯算子', 'kernel', enable_events=True, key='k2', font=('sens', 24)),
+          sg.Radio('銳利化1', 'kernel', enable_events=True, key='k6', font=('sens', 24)),
+          sg.Radio('銳利化2', 'kernel', enable_events=True, key='k7', font=('sens', 24)),
+          sg.Radio('模糊', 'kernel', enable_events=True, key='k8', font=('sens', 24)),
+          sg.Radio('自定義3X3', 'kernel', enable_events=True, key='k5', font=('sens', 24)),
+          sg.Radio('自定義5X5', 'kernel', enable_events=True, key='k4', font=('sens', 24)),
           sg.Push(),],
-        [sg.Text('',size=(1,1)),],
+        [sg.Text('',size=(1,3)),],
         [sg.FileBrowse("Choose Image",target='-GETFILE-', key='-GETFILE-',
-         enable_events=True,size=(20,2), font=('sens', 16)),
+         enable_events=True,size=(25,3), font=('sens', 24)),
          sg.Text('',k='-TEXT1-'),
          sg.Push(),
-         sg.Button('Download', font=('sens', 16), enable_events=True, key='-DOWNLOAD-', size=(15,2))],
+         sg.Button('Download', font=('sens', 24), enable_events=True, key='-DOWNLOAD-', size=(25,3))],
     ]
 
 #window = sg.Window('Convolution', layout)
@@ -249,7 +257,7 @@ def resize(image_file, new_size):
         im.save('./temp_img/tmp.png')
         return "./temp_img/tmp.png"
 
-size = (450, 600)
+size = (700, 1000)
 
 #################################################
 
