@@ -3,8 +3,8 @@ import cv2
 import ctypes
 from PIL import ImageFont, ImageDraw, Image
 
-font_size=[40,40,20,20,15]
-fontpath = 'NotoSansTC-Regular.ttf'
+font_size=[80,80,40,40,30]
+fontpath = 'C:\\Users\\tcfsh\\Desktop\\tcfsh_anni_game\\TCFSH_anni_game\\NotoSansTC-Regular.ttf'
 
 
 cap = cv2.VideoCapture(0) # this is the magic!
@@ -91,7 +91,7 @@ while(True):
         cv2.line(output_image,(int(newX+frame_margin_width+round(text_width*i)),frame_margin_height),(int(newX+frame_margin_width+text_width*i),int(frame_margin_height+round(text_width)*len(kernel[kernel_num]))),(255,255,255),2)
         cv2.line(output_image,(int(newX+frame_margin_width),int(frame_margin_height+round(text_width)*i)),(int(newX+frame_margin_width+round(text_width*len(kernel[kernel_num]))),int(frame_margin_height+round(text_width)*i)),(255,255,255),2)
 
-    cv2.imshow('live2', convolved_image1)
+    #cv2.imshow('live2', convolved_image1)
     #cv2.imshow('live', gray)
     cv2.imshow('live',output_image)
 
